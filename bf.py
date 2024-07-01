@@ -5,7 +5,7 @@ import requests
 import os
 
 # URL untuk menguji flood
-url = "http://example.com"
+url = "https://jdih.cianjurkab.go.id"
 
 # Fungsi untuk membuat IP acak
 def get_random_ip():
