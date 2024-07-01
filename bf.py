@@ -30,8 +30,10 @@ def main():
             user_agent = res.headers.get('User-Agent')
 
             if user_agent is None:
-                print("User-Agent tidak ditemukan.")
-                return
+                with open('ua.txt', 'r') as f:
+                    user_agent = f.read().strip()
+            else:
+                user_agent = user_agent
 
             random_string = random_string_generate(10)
             fake_ip = f"{random_byte()}.{random_byte()}.{random_byte()}.{random_byte()}"
@@ -60,4 +62,4 @@ def main():
     print("Pemintaan selesai.")
 
 if __name__ == "__main__":
-    main(
+    main()
